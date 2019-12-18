@@ -2,15 +2,15 @@
   <a-modal
     :width="640"
     :visible="visible"
-    title="任务点评"
+    title="完成任务"
     @ok="handleSubmit"
     @cancel="visible = false"
   >
     <a-form :form="form">
       <a-form-item
-        label="请输入点评"
+        label="请输入完成内容"
       >
-        <a-textarea v-decorator="['com']"></a-textarea>
+        <a-textarea v-decorator="['comfir']"></a-textarea>
       </a-form-item>
     </a-form>
   </a-modal>
@@ -20,21 +20,15 @@
 export default {
   data () {
     return {
-      curtaskid: 0,
       visible: false,
+      curtaskId: 0,
       form: this.$form.createForm(this)
     }
   },
   methods: {
     show (record) {
-      const {
-        form: { setFieldsValue }
-      } = this
+      this.curtaskId = record.taskId
       this.visible = true
-      this.curtaskid = record.taskId
-      this.$nextTick(() => {
-        setFieldsValue({ com: record.remarkText })
-      })
     },
     handleSubmit () {
       const {
@@ -45,8 +39,8 @@ export default {
         if (!errors) {
           console.log('values', values)
           this.$axios2.post(
-            'task/remark',
-            JSON.parse('{"taskId":' + this.curtaskid + ', "remarkText": "' + values.com + '"}'),
+            'task/submit',
+            JSON.parse('{"taskId":' + this.curtaskId + ', "submitText":"' + values.comfir + '"}'),
             response => {
               if (response.status >= 200 && response.status < 300) {
                 this.visible = false
@@ -54,8 +48,8 @@ export default {
                 this.openNotification(1)
                 console.log(response.data)
               } else {
-                console.log(response.message)
                 this.openNotification(0)
+                console.log(response.message)
               }
             }
           )

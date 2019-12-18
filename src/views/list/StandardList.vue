@@ -1,15 +1,15 @@
 <template>
   <div>
-    <a-card :bordered="false">
+    <a-card v-if="currole === 0" :bordered="false">
       <a-row>
         <a-col :sm="8" :xs="24">
-          <head-info title="待分配任务" content="3" :bordered="true"/>
+          <head-info title="待分配任务" :content="createTaskNum" :bordered="true"/>
         </a-col>
         <a-col :sm="8" :xs="24">
-          <head-info title="待完成任务" content="8" :bordered="true"/>
+          <head-info title="待完成任务" :content="doingTaskNum" :bordered="true"/>
         </a-col>
         <a-col :sm="8" :xs="24">
-          <head-info title="已完成任务" content="5"/>
+          <head-info title="已完成任务" :content="endTaskNum"/>
         </a-col>
       </a-row>
     </a-card>
@@ -28,15 +28,15 @@
         <a-input-search style="margin-left: 16px; width: 272px;" />
       </div>
 
-      <div class="operate">
+      <div v-if="currole === 0" class="operate">
         <a-button type="dashed" style="width: 100%" icon="plus" @click="$refs.taskForm.add()">新建任务</a-button>
       </div>
 
       <a-list size="large" :pagination="{showSizeChanger: true, showQuickJumper: true, pageSize: 5, total: 50}">
         <a-list-item :key="index" v-for="(item, index) in data">
-          <a-list-item-meta :description="item.description">
-            <a-avatar slot="avatar" size="large" shape="square" :src="item.avatar"/>
-            <a @click="$refs.formDetail.show()" slot="title">{{ item.title }}</a>
+          <a-list-item-meta :description="item.taskContent">
+            <a-avatar slot="avatar" size="large" shape="square" :src="avatarurl"/>
+            <a @click="$refs.formDetail.show(item)" slot="title">{{ item.taskName }}</a>
           </a-list-item-meta>
           <!-- <div slot="actions">
             <a-dropdown>
@@ -50,45 +50,53 @@
           <div class="list-content">
             <div class="list-content-item">
               <span>状态</span>
-              <p>{{ item.state }}</p>
+              <p>{{ item.taskStatusDes }}</p>
             </div>
             <div class="list-content-item">
               <span>创建时间</span>
-              <p>{{ item.startAt }}</p>
+              <p>{{ item.createTime }}</p>
             </div>
           </div>
 
-          <div v-if="item.state=='创建中'" slot="actions">
+          <div v-if="item.taskStatusDes=='创建中' && currole === 0" slot="actions">
             <a @click="$refs.taskForm.edit(item)">编辑</a>
           </div>
-          <div v-else slot="actions">
+          <div v-else-if="currole === 0" slot="actions">
             <a disabled="disabled">编辑</a>
           </div>
 
-          <div v-if="item.state=='创建中'" slot="actions">
-            <a>删除</a>
+          <div v-if="item.taskStatusDes=='创建中' && currole === 0" slot="actions">
+            <a @click="deletedata(item.taskId)">删除</a>
           </div>
-          <div v-else slot="actions">
+          <div v-else-if="currole === 0" slot="actions">
             <a disabled="disabled">删除</a>
           </div>
 
-          <div v-if="item.state=='创建中'" slot="actions">
+          <div v-if="item.taskStatusDes=='创建中' && currole === 0" slot="actions">
             <a @click="$refs.taskDisp.show(item)">分配</a>
           </div>
-          <div v-else-if="item.state=='进行中' || item.state=='已完成'" slot="actions">
+          <div v-else-if="(item.taskStatusDes=='进行中' || item.taskStatusDes=='已完成') && currole === 0" slot="actions">
             <a @click="$refs.taskCom.show(item)">点评</a>
           </div>
-          <div v-else slot="actions">
+          <div v-else-if="currole === 0" slot="actions">
             <a disabled="disabled">分配</a>
+          </div>
+
+          <div v-if="item.taskStatusDes=='进行中' && currole === 1" slot="actions">
+            <a @click="$refs.taskComfir.show(item)">确认完成</a>
+          </div>
+          <div v-else-if="currole === 1" slot="actions">
+            <a disabled="disabled">确认完成</a>
           </div>
 
         </a-list-item>
       </a-list>
 
-      <task-form ref="taskForm" />
+      <task-form @refreshdata="refreshdata" ref="taskForm" />
       <form-detail ref="formDetail" />
-      <task-disp ref="taskDisp" />
-      <task-com ref="taskCom" />
+      <task-disp @refreshdata="refreshdata" ref="taskDisp" />
+      <task-com @refreshdata="refreshdata" ref="taskCom" />
+      <task-comfir @refreshdata="refreshdata" ref="taskComfir" />
     </a-card>
   </div>
 </template>
@@ -99,49 +107,9 @@ import TaskForm from './modules/TaskForm'
 import FormDetail from './modules/FormDetail'
 import TaskDisp from './modules/TaskDisp'
 import TaskCom from './modules/TaskCom'
+import TaskComfir from './modules/TaskComfir'
 
-const data = []
-data.push({
-  taskid: '1',
-  title: '任务一号',
-  avatar: 'https://gw.alipayobjects.com/zos/rmsportal/dURIMkkrRFpPgTuzkwnB.png',
-  description: '那是一种内在的东西， 他们到达不了，也无法触及的',
-  state: '创建中',
-  startAt: '2018-07-26 22:44'
-})
-data.push({
-  taskid: '2',
-  title: '快去做作业！',
-  avatar: 'https://gw.alipayobjects.com/zos/rmsportal/dURIMkkrRFpPgTuzkwnB.png',
-  description: '希望是一个好东西，也许是最好的，好东西是不会消亡的',
-  state: '进行中',
-  startAt: '2018-07-26 22:44'
-})
-data.push({
-  taskid: '3',
-  title: '做完作业了吗',
-  avatar: 'https://gw.alipayobjects.com/zos/rmsportal/dURIMkkrRFpPgTuzkwnB.png',
-  description: '生命就像一盒巧克力，结果往往出人意料',
-  state: '已完成',
-  startAt: '2018-07-26 22:44'
-})
-data.push({
-  taskid: '4',
-  title: '你妈喊你回家吃饭',
-  avatar: 'https://gw.alipayobjects.com/zos/rmsportal/dURIMkkrRFpPgTuzkwnB.png',
-  description: '城镇中有那么多的酒馆，她却偏偏走进了我的酒馆',
-  state: '创建中',
-  startAt: '2018-07-26 22:44'
-})
-data.push({
-  taskid: '5',
-  title: '窝窝头一块钱四个',
-  avatar: 'https://gw.alipayobjects.com/zos/rmsportal/dURIMkkrRFpPgTuzkwnB.png',
-  description: '那时候我只会想自己想要什么，从不想自己拥有什么',
-  state: '创建中',
-  startAt: '2018-07-26 22:44'
-})
-
+const sleep = ms => new Promise(resolve => setTimeout(resolve, ms))
 export default {
   name: 'StandardList',
   components: {
@@ -149,12 +117,87 @@ export default {
     TaskForm,
     FormDetail,
     TaskDisp,
-    TaskCom
+    TaskCom,
+    TaskComfir
+  },
+  created () {
+    this.refreshdata()
+    this.satadata()
+    this.currole = JSON.parse(localStorage.getItem('userinfo')).userRole
   },
   data () {
     return {
-      data,
+      createTaskNum: '0',
+      endTaskNum: '0',
+      doingTaskNum: '0',
+      currole: 1,
+      data: [],
+      avatarurl: 'https://gw.alipayobjects.com/zos/rmsportal/dURIMkkrRFpPgTuzkwnB.png',
       status: 'all'
+    }
+  },
+  methods: {
+    refreshdata () {
+      sleep(200)
+      this.$axios2.post(
+        'task/all',
+        JSON.parse('{"pageNo":1,"pageSize":1000}'),
+        response => {
+          if (response.status >= 200 && response.status < 300) {
+            this.data = response.data.data.dataList
+            console.log(response.data)
+          } else {
+            console.log(response.message)
+          }
+        }
+      )
+    },
+    deletedata (taskId) {
+      this.$axios2.post(
+        'task/delete',
+        JSON.parse('{"taskId":' + taskId + '}'),
+        response => {
+          if (response.status >= 200 && response.status < 300) {
+            this.data = response.data.data.dataList
+            console.log(response.data)
+            this.openNotification(1)
+          } else {
+            console.log(response.message)
+            this.openNotification(0)
+          }
+        }
+      )
+      this.refreshdata()
+    },
+    satadata (taskId) {
+      this.$axios2.post(
+        'task/statistics',
+        JSON.parse('{}'),
+        response => {
+          if (response.status >= 200 && response.status < 300) {
+            this.createTaskNum = response.data.data.createTaskNum + ''
+            this.endTaskNum = response.data.data.endTaskNum + ''
+            this.doingTaskNum = response.data.data.doingTaskNum + ''
+            console.log(response.data)
+          } else {
+            console.log(response.message)
+          }
+        }
+      )
+      this.refreshdata()
+    },
+    openNotification (state) {
+      let des = ''
+      if (state === 1) {
+        des = '操作成功！'
+      } else {
+        des = '操作失败！'
+      }
+      this.$notification.open({
+        message: 'Notification Title',
+        description: des,
+        duration: 2
+      })
     }
   }
 }

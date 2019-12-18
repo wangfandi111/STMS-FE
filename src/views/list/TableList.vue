@@ -1,13 +1,13 @@
 <template>
   <a-card :bordered="false">
     <a-table :columns="columns" :dataSource="data" bordered>
-      <template v-for="col in ['name', 'age', 'address']" :slot="col" slot-scope="text, record">
+      <template v-for="col in ['userName', 'userJobid', 'address']" :slot="col" slot-scope="text, record">
         <div :key="col">
           <a-input
             v-if="record.editable"
             style="margin: -5px 0"
             :value="text"
-            @change="e => handleChange(e.target.value, record.key, col)"
+            @change="e => handleChange(e.target.value, record.userId, col)"
           />
           <template v-else>{{text}}</template>
         </div>
@@ -15,13 +15,13 @@
       <template slot="operation" slot-scope="text, record">
         <div class="editable-row-operations">
           <span v-if="record.editable">
-            <a @click="() => save(record.key)">Save</a>
-            <a-popconfirm title="Sure to cancel?" @confirm="() => cancel(record.key)">
+            <a @click="() => save(record.userId)">Save</a>
+            <a-popconfirm title="Sure to cancel?" @confirm="() => cancel(record.userId)">
               <a>Cancel</a>
             </a-popconfirm>
           </span>
           <span v-else>
-            <a @click="() => edit(record.key)">Edit</a>
+            <a @click="() => edit(record.userId)">Edit</a>
           </span>
         </div>
       </template>
@@ -33,36 +33,42 @@
 const columns = [
   {
     title: '姓名',
-    dataIndex: 'name',
+    dataIndex: 'userName',
     width: '40%',
-    scopedSlots: { customRender: 'name' }
+    scopedSlots: { customRender: 'userName' }
   },
   {
     title: '学号',
-    dataIndex: 'studentid',
+    dataIndex: 'userJobid',
     width: '60%',
-    scopedSlots: { customRender: 'age' }
+    scopedSlots: { customRender: 'userJobid' }
   }
 ]
 
-const data = [
-  {
-    key: '1',
-    name: '学生哈哈哈',
-    studentid: 15555555
-  },
-  {
-    key: '2',
-    name: '学生哈哈哈2',
-    studentid: 18888888
-  }
-]
 export default {
+  created () {
+    this.refreshdata()
+  },
   data () {
-    this.cacheData = data.map(item => ({ ...item }))
     return {
-      data,
+      data: [],
       columns
+    }
+  },
+  methods: {
+    refreshdata () {
+      this.$axios2.post(
+        'user/students',
+        JSON.parse('{"pageNo":1,"pageSize":1000}'),
+        response => {
+          if (response.status >= 200 && response.status < 300) {
+            this.data = response.data.data.dataList
+            console.log(response.data)
+          } else {
+            console.log(response.message)
+          }
+        }
+      )
     }
   }
 }

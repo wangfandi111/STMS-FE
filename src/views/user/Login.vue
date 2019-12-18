@@ -21,7 +21,7 @@
               placeholder="账户"
               v-decorator="[
                 'username',
-                {rules: [{ required: true, message: '请输入帐户名或邮箱地址' }, { validator: handleUsernameOrEmail }], validateTrigger: 'change'}
+                {rules: [{ required: true, message: '请输入帐户名' }, { validator: handleUsernameOrEmail }], validateTrigger: 'change'}
               ]"
             >
               <a-icon slot="prefix" type="user" :style="{ color: 'rgba(0,0,0,.25)' }"/>
@@ -100,6 +100,8 @@ export default {
       requiredTwoStepCaptcha: false,
       stepCaptchaVisible: false,
       form: this.$form.createForm(this),
+      username0: '',
+      password0: '',
       state: {
         time: 60,
         loginBtn: false,
@@ -138,27 +140,47 @@ export default {
     },
     handleSubmit (e) {
       e.preventDefault()
+      const {
+        form: { validateFields },
+        state,
+        customActiveKey
+      } = this
+
+      state.loginBtn = true
+
+      const validateFieldsKey = customActiveKey === 'tab1' ? ['username', 'password'] : ['mobile', 'captcha']
+
+      validateFields(validateFieldsKey, { force: true }, (err, values) => {
+        if (!err) {
+          console.log('login form', values)
+          this.username0 = values.username
+          this.password0 = values.password
+        } else {
+          setTimeout(() => {
+            state.loginBtn = false
+          }, 600)
+        }
+      })
+
       this.$axios2.post(
-        'login',
-        {
-          tJobid: '123',
-          tPassword: '123'
-        },
+        'user/login',
+        JSON.parse('{"loginStr":"' + this.username0 + '", "password": "' + this.password0 + '"}'),
         response => {
+          const loginParams = { 'username': 'admin', 'password': 'test' }
+          loginParams['username'] = 'admin'
+          loginParams.password = md5('ant.wrong')
           if (response.status >= 200 && response.status < 300) {
-            const loginParams = { 'username': 'admin', 'password': 'test' }
-            loginParams['username'] = 'admin'
-            loginParams.password = md5('ant.wrong')
-            if (response.data.status === '0') {
-              loginParams.password = md5('ant.wrong')
-            } else {
+            if (response.data.code === 200) {
               loginParams.password = md5('ant.design')
-              localStorage.setItem('userinfo', response.data)
+              localStorage.setItem('userinfo', JSON.stringify(response.data.data))
+              console.log('localStorage', JSON.parse(localStorage.getItem('userinfo')))
+            } else {
+              loginParams.password = md5('ant.wrong')
             }
-            console.log(localStorage.getItem('userinfo'))
             this.handleSubmitSrc(e, loginParams)
           } else {
             console.log(response.message)
+            loginParams.password = md5('ant.wrong')
           }
         }
       )

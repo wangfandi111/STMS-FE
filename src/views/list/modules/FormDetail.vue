@@ -11,6 +11,13 @@
     </template>
     <a-table :columns="columns" :dataSource="data" bordered>
     </a-table>
+    <a-form :form="form">
+      <a-form-item
+        label="教师点评"
+      >
+        <a-textarea readOnly v-decorator="['com']"></a-textarea>
+      </a-form-item>
+    </a-form>
   </a-modal>
 </template>
 
@@ -18,56 +25,82 @@
 const columns = [
   {
     title: '姓名',
-    dataIndex: 'name',
-    width: '30%',
-    scopedSlots: { customRender: 'name' }
+    dataIndex: 'stuName',
+    width: '20%',
+    scopedSlots: { customRender: 'stuName' }
   },
   {
     title: '状态',
-    dataIndex: 'state',
-    width: '30%',
-    scopedSlots: { customRender: 'age' }
+    dataIndex: 'hasSubmittedDes',
+    width: '20%',
+    scopedSlots: { customRender: 'hasSubmittedDes' }
   },
   {
-    title: '时间',
-    dataIndex: 'endAt',
-    width: '40%',
-    scopedSlots: { customRender: 'age' }
+    title: '完成内容',
+    dataIndex: 'submitText',
+    width: '30%',
+    scopedSlots: { customRender: 'submitText' }
+  },
+  {
+    title: '完成时间',
+    dataIndex: 'submitTime',
+    width: '30%',
+    scopedSlots: { customRender: 'submitTime' }
   }
 ]
-
-const data = []
-data.push({
-  name: '刘1',
-  state: '进行中',
-  endAt: '-'
-})
-data.push({
-  name: '刘2',
-  state: '已完成',
-  endAt: '2018-07-26 22:44'
-})
-data.push({
-  name: '刘3',
-  state: '已完成',
-  endAt: '2018-07-26 22:44'
-})
 
 export default {
   data () {
     return {
-      data,
+      data: [],
       columns,
+      curtaskId: 0,
+      remark: '',
       visible: false,
       form: this.$form.createForm(this)
     }
   },
   methods: {
-    show () {
+    show (record) {
       this.visible = true
+      this.curtaskId = record.taskId
+      this.refreshdata()
+      this.getcom()
     },
     handleSubmit () {
       this.visible = false
+    },
+    refreshdata () {
+      this.$axios2.post(
+        'task/detail',
+        JSON.parse('{"taskId":' + this.curtaskId + ', "pageNo":1, "pageSize":1000}'),
+        response => {
+          if (response.status >= 200 && response.status < 300) {
+            this.data = response.data.data.dataList
+            console.log(response.data)
+          } else {
+            console.log(response.message)
+          }
+        }
+      )
+    },
+    getcom () {
+      const {
+        form: { setFieldsValue }
+      } = this
+      this.$axios2.post(
+        'task/search',
+        JSON.parse('{"taskId":' + this.curtaskId + '}'),
+        response => {
+          if (response.status >= 200 && response.status < 300) {
+            this.$nextTick(() => {
+              setFieldsValue({ com: response.data.data.remarkText })
+            })
+          } else {
+            console.log(response.message)
+          }
+        }
+      )
     }
   }
 }

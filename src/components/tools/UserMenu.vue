@@ -44,6 +44,17 @@ export default {
         title: '提示',
         content: '真的要注销登录吗 ?',
         onOk: () => {
+          this.$axios2.post(
+            'user/logout',
+            JSON.parse('{}'),
+            response => {
+              if (response.status >= 200 && response.status < 300) {
+                console.log(response.data)
+              } else {
+                console.log(response.message)
+              }
+            }
+          )
           return this.Logout({}).then(() => {
             setTimeout(() => {
               window.location.reload()

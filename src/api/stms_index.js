@@ -1,20 +1,21 @@
 import axios from 'axios'
 
+axios.defaults.withCredentials = true
 const http = axios.create({
-  baseURL: 'https://jdzs.bjtu.edu.cn/',
+  baseURL: 'http://localhost:8080/',
   withCredentials: true,
   headers: {
-    'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8'
-  },
-  transformRequest: [function (data) {
-    let newData = ''
-    for (const k in data) {
-      if (data.hasOwnProperty(k) === true) {
-        newData += encodeURIComponent(k) + '=' + encodeURIComponent(data[k]) + '&'
-      }
-    }
-    return newData
-  }]
+    'Content-Type': 'application/json'
+  }
+  // transformRequest: [function (data) {
+  //   let newData = ''
+  //   for (const k in data) {
+  //     if (data.hasOwnProperty(k) === true) {
+  //       newData += encodeURIComponent(k) + '=' + encodeURIComponent(data[k]) + '&'
+  //     }
+  //   }
+  //   return newData
+  // }]
 })
 
 function apiAxios (method, url, params, response) {
@@ -44,3 +45,4 @@ export default {
     return apiAxios('DELETE', url, params, response)
   }
 }
+http.defaults.withCredentials = true

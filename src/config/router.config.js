@@ -9,18 +9,18 @@ export const asyncRouterMap = [
     name: 'index',
     component: BasicLayout,
     meta: { title: '主页' },
-    redirect: '/task/task-manage',
+    redirect: '/task/task-info',
     children: [
       // dashboard
       {
         path: '/task',
         name: 'task',
-        redirect: '/task/task-manage',
+        redirect: '/task/task-info',
         component: RouteView,
         meta: { title: '任务信息', icon: bxAnaalyse, permission: [ 'dashboard' ] },
         children: [
           {
-            path: '/task/task-manage',
+            path: '/task/task-info',
             name: 'BasicList',
             component: () => import('@/views/list/StandardList'),
             meta: { title: '任务列表', keepAlive: true, permission: [ 'dashboard' ] }

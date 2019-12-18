@@ -11,7 +11,7 @@
       :defaultValue="[]"
       style="width: 100%"
       @change="handleChange"
-      placeholder="Please select"
+      placeholder="请选择执行人"
       :value="value"
     >
       <a-select-option v-for="d in data" :key="d.userId">{{d.userName}}</a-select-option>

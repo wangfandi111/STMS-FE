@@ -58,6 +58,7 @@ export default {
           return this.Logout({}).then(() => {
             setTimeout(() => {
               window.location.reload()
+              window.location.href('/')
             }, 16)
           }).catch(err => {
             this.$message.error({

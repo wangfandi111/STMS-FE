@@ -9,7 +9,7 @@ export const asyncRouterMap = [
     name: 'index',
     component: BasicLayout,
     meta: { title: '主页' },
-    redirect: '/task/task-info',
+    redirect: '/task',
     children: [
       // dashboard
       {

@@ -2,7 +2,7 @@ import axios from 'axios'
 
 axios.defaults.withCredentials = true
 const http = axios.create({
-  baseURL: 'http://localhost:8080/',
+  baseURL: 'http://api.dreamspark.com.cn/',
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json'
